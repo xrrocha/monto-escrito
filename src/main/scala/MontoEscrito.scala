@@ -94,24 +94,24 @@ object MontoEscrito {
     require(valor > 0 && valor < 1000, "Valor no comprendido entre 1 inclusive y 1000 exclusive")
 
     valor match {
+      // Caso #1: Valor menor que 30; buscar en mapa de unidades
       case v if v < 30 =>
-        // Caso #1: Valor menor que 30; buscar en mapa de unidades
-        unidades(valor)
+        unidades(v)
+      // Caso #2: Valor mayor que 30 e inferior a 100; buscar en mapa de decenas y concatenar recursivamente el remanente
       case v if v < 100 =>
-        // Caso #2: Valor mayor que 30 e inferior a 100; buscar en mapa de decenas y concatenar recursivamente el remanente
-        val valorDecenas = valor / 10
+        val valorDecenas = v / 10
         val textoDecenas = decenas(valorDecenas - 2) // Indice - 2 porque mapa empieza con "treinta"
-        val remanente = valor - 10 * valorDecenas
+        val remanente = v - 10 * valorDecenas
           if (remanente == 0) {
             textoDecenas
           } else {
             s"$textoDecenas y ${montoCentenas(remanente)}" // Llamado recursivo para remanente
           }
-      case _ =>
-        // Caso #3: Valor mayor que 100 e inferior a 1000; buscar en mapa de centenas y concatenar recursivamente el remanente
-        val valorCentenas = valor / 100
+      // Caso #3: Valor mayor que 100 e inferior a 1000; buscar en mapa de centenas y concatenar recursivamente el remanente
+      case v =>
+        val valorCentenas = v / 100
         val textoCentenas = centenas(valorCentenas)
-        val remanente = valor - 100 * valorCentenas
+        val remanente = v - 100 * valorCentenas
         if (remanente == 0) {
           if (valorCentenas == 1) { // "cien" para valor 1 y "ciento" para valores mayores que 1
             "cien"
