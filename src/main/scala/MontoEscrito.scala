@@ -64,12 +64,12 @@ object MontoEscrito {
         // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
         .filter { case (valorNumerico, sufijo) => valorNumerico > 0 }
         // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
-        // Seq(("ochocientos noventa y dos", ""), ("cuatrocientos veintisiete", "mil"), ("doce", "millones"))
+        // Seq("ochocientos noventa y dos", "cuatrocientos veintisiete mil", "doce millones")
         .map { case (valorNumerico, sufijo) =>
           s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
         }
         // Reversa grupos de 3 dígitos para presentar en el orden esperado
-        // Resultado: Seq(("doce", "millones"), ("cuatrocientos veintisiete", "mil"), ("ochocientos noventa y dos", ""))
+        // Resultado: Seq("doce millones", "cuatrocientos veintisiete mil", "ochocientos noventa y dos")
         .reverse
         // Convierte colección de grupos a string delimitado con ' '
         // Resultado: "doce millones cuatrocientos veintisiete mil ochocientos noventa y dos"
