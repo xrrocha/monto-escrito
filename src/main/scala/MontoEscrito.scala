@@ -36,44 +36,44 @@ object MontoEscrito {
   def apply(valor: Int): String = {
     require(valor <= 999999999.99) // Funciona hasta 999,999,999.99
 
-    // Serie infinita que comienza con tupla (valor, lista vacía)
-    // Colecta (en orden inverso) todos los grupos de 3 o menos dígitos
-    // Ejm: el valor 12,427,892 genera sucesivamente:
-    //     (12427, Seq(892)),
-    //     (12, Seq(892, 427)),
-    //     (0, Seq(892, 427, 12))
-    // Solo nos interesa la tupla final, cuando el remanente se hace cero
     val montoEscrito =
-    Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
-      val siguienteGrupo = remanente % 1000
-      val siguienteRemanente = remanente / 1000
-      (siguienteRemanente, grupos :+ siguienteGrupo)
-    }
-      // Se detiene tan pronto el primer elemento de la tupla (el remanente) se hace cero
-      // Resultado: Some((0, Seq(892, 427, 12)))
-      .find(_._1 == 0) // find { case(remanente, grupos) => remanente == 0 }
-      // Extrae solo la colección de grupos de hasta 3 cifras (ignorando el remanente cero)
-      // Resultado: Some(Seq(892, 427, 12))
-      .map(_._2) // map { case(remanente, grupos) => grupos }
-      // Remueve envoltura Some(...) retornada por find() (o secuencia vacía si es None)
-      // Resultado: Seq(892, 427, 12)
-      .getOrElse(Seq.empty)
-      // Asocia cada grupo de 3 dígitos con su función sufijo correspondiente:
-      // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
-      .zip(sufijosMedida)
-      // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
-      .filter { case (valorNumerico, sufijo) => valorNumerico > 0 }
-      // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
-      // Seq(("ochocientos noventa y dos", ""), ("cuatrocientos veintisiete", "mil"), ("doce", "millones"))
-      .map { case (valorNumerico, sufijo) =>
-        s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
+      // Serie infinita que comienza con tupla (valor, lista vacía)
+      // Colecta (en orden inverso) todos los grupos de 3 o menos dígitos
+      // Ejm: el valor 12,427,892 genera sucesivamente:
+      //     (12427, Seq(892)),
+      //     (12, Seq(892, 427)),
+      //     (0, Seq(892, 427, 12))
+      // Solo nos interesa la tupla final, cuando el remanente se hace cero
+      Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
+        val siguienteGrupo = remanente % 1000
+        val siguienteRemanente = remanente / 1000
+        (siguienteRemanente, grupos :+ siguienteGrupo)
       }
-      // Reversa grupos de 3 dígitos para presentar en el orden esperado
-      // Resultado: Seq(("doce", "millones"), ("cuatrocientos veintisiete", "mil"), ("ochocientos noventa y dos", ""))
-      .reverse
-      // Convierte colección de grupos a string delimitado con ' '
-      // Resultado: "doce millones cuatrocientos veintisiete mil ochocientos noventa y dos"
-      .mkString(" ")
+        // Se detiene tan pronto el primer elemento de la tupla (el remanente) se hace cero
+        // Resultado: Some((0, Seq(892, 427, 12)))
+        .find(_._1 == 0) // find { case(remanente, grupos) => remanente == 0 }
+        // Extrae solo la colección de grupos de hasta 3 cifras (ignorando el remanente cero)
+        // Resultado: Some(Seq(892, 427, 12))
+        .map(_._2) // map { case(remanente, grupos) => grupos }
+        // Remueve envoltura Some(...) retornada por find() (o secuencia vacía si es None)
+        // Resultado: Seq(892, 427, 12)
+        .getOrElse(Seq.empty)
+        // Asocia cada grupo de 3 dígitos con su función sufijo correspondiente:
+        // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
+        .zip(sufijosMedida)
+        // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
+        .filter { case (valorNumerico, sufijo) => valorNumerico > 0 }
+        // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
+        // Seq(("ochocientos noventa y dos", ""), ("cuatrocientos veintisiete", "mil"), ("doce", "millones"))
+        .map { case (valorNumerico, sufijo) =>
+          s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
+        }
+        // Reversa grupos de 3 dígitos para presentar en el orden esperado
+        // Resultado: Seq(("doce", "millones"), ("cuatrocientos veintisiete", "mil"), ("ochocientos noventa y dos", ""))
+        .reverse
+        // Convierte colección de grupos a string delimitado con ' '
+        // Resultado: "doce millones cuatrocientos veintisiete mil ochocientos noventa y dos"
+        .mkString(" ")
 
     // Descarados ajustes para compensar casos especiales
     val ajustes = Seq(
