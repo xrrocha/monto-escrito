@@ -127,9 +127,11 @@ object MontoEscrito {
   val vocales = Set('a', 'e', 'i', 'o', 'u')
   def esVocal(chr: Char) = vocales.contains(chr)
   def plural(valor: Int, termino: String) =
-    if (valor == 1) termino
-    else if (esVocal(termino.last)) s"${termino}s"
-    else s"${termino}es"
+    valor match {
+      case 1 => termino
+      case _ if esVocal(termino.last) => s"${termino}s"
+      case _ => s"${termino}es"
+    }
 
   // Colección de funciones que retornan medida a partir de valor
   val sufijosMedida: Seq[Int => String] =
