@@ -119,7 +119,7 @@ object MontoEscrito {
             textoCentenas
           }
         } else {
-          s"$textoCentenas ${montoCentenas(remanente)}"
+          s"$textoCentenas ${montoCentenas(remanente)}" // Llamado recursivo para remanente
         }
     }
   }
