@@ -141,7 +141,7 @@ object MontoEscrito {
   // Métodos colectados como funciones para añadir sufijo numeral
   def textoUnidades(valor: Int) = "" // Nada para valores entre 1 y 999
   def textoMiles(valor: Int) = "mil " // "mil" para valores entre 1000 y 999,999
-  def textoMillones(valor: Int) = // "millón" para uno y "millones" para valores iguales o mayores que 1
+  def textoMillones(valor: Int) = // "millón" para uno y "millones" para valores mayores que 1
     if (valor == 1) "millón " else "millones "
 
   // Truco para convertir secuencias en mapas con índice entero base 1
