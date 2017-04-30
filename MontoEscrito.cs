@@ -1,4 +1,5 @@
- class Dictionary
+// Código fuente en C# que debe ser reimplementado en Scala ilustrando construcciones funcionales
+class Dictionary
   {
 
     static void Main()
