@@ -66,8 +66,8 @@ object MontoEscrito {
       // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
       // Seq(("ochocientos noventa y dos", ""), ("cuatrocientos veintisiete", "mil"), ("doce", "millones"))
       .map { case (valorNumerico, sufijo) =>
-      s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
-    }
+        s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
+      }
       // Reversa grupos de 3 dígitos para presentar en el orden esperado
       // Resultado: Seq(("doce", "millones"), ("cuatrocientos veintisiete", "mil"), ("ochocientos noventa y dos", ""))
       .reverse
