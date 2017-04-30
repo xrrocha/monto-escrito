@@ -6,7 +6,7 @@ object MontoEscrito {
 
   // método apply invocado con nombre de objeto como en:
   //     MontoEscrito(123.45, "dólar", "centavo")
-  def apply(valor: Double, moneda: String, centimo: String): String = {
+  def apply(valor: Double, moneda: String, centesimo: String): String = {
     require(valor <= 999999999.99)
 
     // Separa valor entero de fraccionario
@@ -20,12 +20,12 @@ object MontoEscrito {
     val montoEscritoEnteroMoneda =
       s"$montoEscritoEntero${plural(valorEntero, moneda)}"
 
-    // Añade parte fraccionaria (si diferente de cero) con indicativo centesimal requerido
+    // Añade parte fraccionaria (si es diferente de cero) con indicativo centesimal especificado
     val montoEscritoConFraccion =
       if (valorFraccionario == 0) {
         s"$montoEscritoEnteroMoneda"
       } else {
-        s"$montoEscritoEnteroMoneda con ${montoCentenas(valorFraccionario)} ${plural(valorFraccionario, centimo)}"
+        s"$montoEscritoEnteroMoneda con ${montoCentenas(valorFraccionario)} ${plural(valorFraccionario, centesimo)}"
       }
 
     // Retorna monto escrito completo
@@ -38,9 +38,11 @@ object MontoEscrito {
 
     // Serie infinita que comienza con tupla (valor, lista vacía)
     // Colecta (en orden inverso) todos los grupos de 3 o menos dígitos
-    // Ejm: el valor 12,427,892 genera sucesivamente: (12427, Seq(892)), (12, Seq(892, 427)), (0, Seq(892, 427, 12))
+    // Ejm: el valor 12,427,892 genera sucesivamente:
+    //     (12427, Seq(892)),
+    //     (12, Seq(892, 427)),
+    //     (0, Seq(892, 427, 12))
     // Solo nos interesa la tupla final, cuando el remanente se hace cero
-    // Resultado: (0, Seq(892, 427, 12)
     val montoEscrito =
     Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
       val siguienteGrupo = remanente % 1000
@@ -79,7 +81,7 @@ object MontoEscrito {
       ("^un mil", "mil"), // Transforma "un mil dólares" en simplemente "mil dólares"
       ("^millón ", "un millón de ")) // Transforma "millón pesos" en "un millón de pesos"
 
-    // Retorna resultado de descarado truco para compensar casos especiales
+    // Retorna resultado de aplicar descarados trucos para compensar casos especiales
     ajustes.foldLeft(montoEscrito) { (texto, ajuste) =>
       val (regex, reemplazo) = ajuste
       texto.replaceAll(regex, reemplazo)
@@ -91,35 +93,34 @@ object MontoEscrito {
 
     require(valor > 0 && valor < 1000, "Valor no comprendido entre 1 inclusive y 1000 exclusive")
 
-    // Caso #1: Valor menor que 30; buscar en mapa de unidades
-    if (valor < 30) {
-      unidades(valor)
-    }
-    // Caso #1: Valor mayor que 30 e inferior a 100; buscar en mapa de decenas y concatenar recursivamente el remanente
-    else if (valor < 100) {
-      val valorDecenas = valor / 10
-      val textoDecenas = decenas(valorDecenas - 2) // Indice - 2 porque mapa empieza con "treinta"
-      val remanente = valor - 10 * valorDecenas
-      if (remanente == 0) {
-        textoDecenas
-      } else {
-        s"$textoDecenas y ${montoCentenas(remanente)}" // Llamado recursivo para remanente
-      }
-    }
-    // Caso #3: Valor mayor que 100 e inferior a 1000; buscar en mapa de centenas y concatenar recursivamente el remanente
-    else {
-      val valorCentenas = valor / 100
-      val textoCentenas = centenas(valorCentenas)
-      val remanente = valor - 100 * valorCentenas
-      if (remanente == 0) {
-        if (valorCentenas == 1) { // "cien" para valor 1 y "ciento" para valores mayores que 1
-          "cien"
+    valor match {
+      case v if v < 30 =>
+        // Caso #1: Valor menor que 30; buscar en mapa de unidades
+        unidades(valor)
+      case v if v < 100 =>
+        // Caso #2: Valor mayor que 30 e inferior a 100; buscar en mapa de decenas y concatenar recursivamente el remanente
+        val valorDecenas = valor / 10
+        val textoDecenas = decenas(valorDecenas - 2) // Indice - 2 porque mapa empieza con "treinta"
+        val remanente = valor - 10 * valorDecenas
+          if (remanente == 0) {
+            textoDecenas
+          } else {
+            s"$textoDecenas y ${montoCentenas(remanente)}" // Llamado recursivo para remanente
+          }
+      case _ =>
+        // Caso #3: Valor mayor que 100 e inferior a 1000; buscar en mapa de centenas y concatenar recursivamente el remanente
+        val valorCentenas = valor / 100
+        val textoCentenas = centenas(valorCentenas)
+        val remanente = valor - 100 * valorCentenas
+        if (remanente == 0) {
+          if (valorCentenas == 1) { // "cien" para valor 1 y "ciento" para valores mayores que 1
+            "cien"
+          } else {
+            textoCentenas
+          }
         } else {
-          textoCentenas
+          s"$textoCentenas ${montoCentenas(remanente)}"
         }
-      } else {
-        s"$textoCentenas ${montoCentenas(remanente)}"
-      }
     }
   }
 
@@ -143,7 +144,7 @@ object MontoEscrito {
   def textoMillones(valor: Int) = // "millón" para valores iguales o mayores que 1,000,000
     if (valor == 1) "millón " else "millones "
 
-  // Truco para convertir secuencias/vectores a mapa por índice base 1
+  // Truco para convertir secuencias a mapa por índice base 1
   implicit def seq2map[A](as: Seq[A]): Map[Int, A] =
     as.zipWithIndex.map { case (text, index) => index + 1 -> text }.toMap
 
