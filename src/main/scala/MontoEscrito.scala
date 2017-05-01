@@ -59,7 +59,7 @@ object MontoEscrito {
         // Remueve envoltura Some(...) retornada por find() (o secuencia vacía si es None)
         // Resultado: Seq(892, 427, 12)
         .getOrElse(Seq.empty)
-        // Asocia cada grupo de 3 dígitos con su función sufijo correspondiente:
+        // Empareja cada grupo de 3 dígitos con su función sufijo correspondiente:
         // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
         .zip(sufijosMedida)
         // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
