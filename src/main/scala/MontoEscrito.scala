@@ -40,7 +40,7 @@ object MontoEscrito {
       // Serie infinita que comienza con tupla (valor, lista vacía)
       // Recolecta (en orden inverso) todos los grupos de 3 o menos dígitos
       // Ejm: el valor 12,427,892 genera sucesivamente:
-      //     (12427892, Seq()) // Tupla inicial pasada a foldLeft()
+      //     (12427892, Seq()) // Tupla inicial pasada a Stream.iterate()
       //     (12427, Seq(892))
       //     (12, Seq(892, 427))
       //     (0, Seq(892, 427, 12))
