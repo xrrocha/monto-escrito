@@ -63,7 +63,7 @@ object MontoEscrito {
         // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
         .zip(sufijosMedida)
         // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
-        .filter { case (valorGrupo, sufijo) => valorGrupo > 0 }
+        .filter(_._1 > 0) // filter { case (valorGrupo, sufijo) => valorGrupo > 0 }
         // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
         // Resultado: Seq("ochocientos noventa y dos", "cuatrocientos veintisiete mil", "doce millones")
         .map { case (valorNumerico, sufijo) =>
