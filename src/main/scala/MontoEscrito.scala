@@ -38,16 +38,17 @@ object MontoEscrito {
 
     val montoEscrito =
       // Serie infinita que comienza con tupla (valor, lista vacía)
-      // Colecta (en orden inverso) todos los grupos de 3 o menos dígitos
+      // Recolecta (en orden inverso) todos los grupos de 3 o menos dígitos
       // Ejm: el valor 12,427,892 genera sucesivamente:
-      //     (12427, Seq(892)),
-      //     (12, Seq(892, 427)),
+      //     (12427892, Seq()) // Tupla inicial pasada a foldLeft()
+      //     (12427, Seq(892))
+      //     (12, Seq(892, 427))
       //     (0, Seq(892, 427, 12))
       // Solo nos interesa la tupla final, cuando el remanente se hace cero
       Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
-        val siguienteGrupo = remanente % 1000
+        val siguienteElemento = remanente % 1000
         val siguienteRemanente = remanente / 1000
-        (siguienteRemanente, grupos :+ siguienteGrupo)
+        (siguienteRemanente, grupos :+ siguienteElemento)
       }
         // Se detiene tan pronto el primer elemento de la tupla (el remanente) se hace cero
         // Resultado: Some((0, Seq(892, 427, 12)))
@@ -62,7 +63,7 @@ object MontoEscrito {
         // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
         .zip(sufijosMedida)
         // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
-        .filter { case (valorNumerico, sufijo) => valorNumerico > 0 }
+        .filter { case (valorGrupo, sufijo) => valorGrupo > 0 }
         // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
         // Resultado: Seq("ochocientos noventa y dos", "cuatrocientos veintisiete mil", "doce millones")
         .map { case (valorNumerico, sufijo) =>
@@ -81,7 +82,7 @@ object MontoEscrito {
       ("^un mil", "mil"), // Transforma "un mil dólares" en simplemente "mil dólares"
       ("^millón ", "un millón de ")) // Transforma "millón pesos" en "un millón de pesos"
 
-    // Retorna resultado de aplicar descarados trucos para compensar casos especiales
+    // Retorna resultado de aplicar ajustes para compensar casos especiales
     ajustes.foldLeft(montoEscrito) { (texto, ajuste) =>
       val (regex, reemplazo) = ajuste
       texto.replaceAll(regex, reemplazo)
