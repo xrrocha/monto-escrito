@@ -84,5 +84,9 @@ object TestMontoEscrito extends TestSuite {
       assert("novecientos noventa y nueve millones novecientos noventa y nueve mil novecientos noventa y nueve pesos con noventa y nueve centavos" == MontoEscrito(valor, "peso", "centavo"))
       assert("novecientos noventa y nueve millones novecientos noventa y nueve mil novecientos noventa y nueve bolívares con noventa y nueve céntimos" == MontoEscrito(valor, "bolívar", "céntimo"))
     }
+    'generaMontoEscritoConMillonSinCentenasDeMiles {
+      val valor = 3000000.32
+      assert("tres millones de bolívares con treinta y dos céntimos" == MontoEscrito(valor, "bolívar", "céntimo"))
+    }
   }
 }

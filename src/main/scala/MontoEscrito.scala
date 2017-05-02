@@ -28,65 +28,69 @@ object MontoEscrito {
         s"$montoEscritoEnteroMoneda con ${montoCentenas(valorFraccionario)} ${plural(valorFraccionario, centesimo)}"
       }
 
-    // Retorna monto escrito completo
-    montoEscritoConFraccion
+
+    // Descarados ajustes para compensar casos especiales
+    val ajustes = Seq(
+      // Colapsa múltiples blancos en uno solo
+      ("\\s+", " "),
+      // Transforma "un mil dólares" en simplemente "mil dólares"
+      ("^un mil", "mil"),
+      // Transforma "millón" en "un millón"
+      ("^millón", "un millón"),
+      // Transforma "un millón pesos" en "un millón de pesos" o "dos millones dólares" en "dos millones de dólares"
+      // o "tres millones bolívares con treinta" en "tres millones de bolívares con treinta"
+      ("^(\\S+) mill(ón|ones) (\\S+)( con |$)", "$1 mill$2 de $3$4")
+    )
+
+    // Retorna resultado de aplicar ajustes para compensar casos especiales
+    ajustes.foldLeft(montoEscritoConFraccion) { (texto, ajuste) =>
+      val (regex, reemplazo) = ajuste
+      texto.replaceAll(regex, reemplazo)
+    }
   }
 
   // Monto escrito de parte entera
   def apply(valor: Int): String = {
     require(valor > 0 && valor <= 999999999.99) // Funciona hasta 999,999,999.99
 
-    val montoEscrito =
-      // Serie infinita que comienza con tupla (valor, lista vacía)
-      // Recolecta (en orden inverso) todos los grupos de 3 o menos dígitos
-      // Ejm: el valor 12,427,892 genera sucesivamente:
-      //     (12427892, Seq()) // Tupla inicial pasada a Stream.iterate()
-      //     (12427, Seq(892))
-      //     (12, Seq(892, 427))
-      //     (0, Seq(892, 427, 12))
-      // Solo nos interesa la tupla final, cuando el remanente se hace cero
-      Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
-        val siguienteElemento = remanente % 1000
-        val siguienteRemanente = remanente / 1000
-        (siguienteRemanente, grupos :+ siguienteElemento)
-      }
-        // Se detiene tan pronto el primer elemento de la tupla (el remanente) se hace cero
-        // Resultado: Some((0, Seq(892, 427, 12)))
-        .find { case(remanente, grupos) => remanente == 0 } // find(_._1 == 0)
-        // Extrae solo la colección de grupos de hasta 3 cifras (ignorando el remanente cero)
-        // Resultado: Some(Seq(892, 427, 12))
-        .map { case(remanente, grupos) => grupos } // map(_._2)
-        // Remueve envoltura Some(...) retornada por find(). Operación segura porque remanente siempre se hace cero
-        // Resultado: Seq(892, 427, 12)
-        .get
-        // Empareja cada grupo de 3 dígitos con su función sufijo correspondiente:
-        // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
-        .zip(sufijosMedida)
-        // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
-        .filter { case (valorGrupo, sufijo) => valorGrupo > 0 } // filter(_._1 > 0)
-        // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
-        // Resultado: Seq("ochocientos noventa y dos", "cuatrocientos veintisiete mil", "doce millones")
-        .map { case (valorNumerico, sufijo) =>
-          s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
-        }
-        // Reversa grupos de monto escrito para presentar en el orden esperado
-        // Resultado: Seq("doce millones", "cuatrocientos veintisiete mil", "ochocientos noventa y dos")
-        .reverse
-        // Convierte colección de grupos a string delimitado con ' '
-        // Resultado: "doce millones cuatrocientos veintisiete mil ochocientos noventa y dos"
-        .mkString(" ")
-
-    // Descarados ajustes para compensar casos especiales
-    val ajustes = Seq(
-      ("\\s+", " "), // Colapsa múltiples blancos en uno solo
-      ("^un mil", "mil"), // Transforma "un mil dólares" en simplemente "mil dólares"
-      ("^millón ", "un millón de ")) // Transforma "millón pesos" en "un millón de pesos"
-
-    // Retorna resultado de aplicar ajustes para compensar casos especiales
-    ajustes.foldLeft(montoEscrito) { (texto, ajuste) =>
-      val (regex, reemplazo) = ajuste
-      texto.replaceAll(regex, reemplazo)
+    // Serie infinita que comienza con tupla (valor, lista vacía)
+    // Recolecta (en orden inverso) todos los grupos de 3 o menos dígitos
+    // Ejm: el valor 12,427,892 genera sucesivamente:
+    //     (12427892, Seq()) // Tupla inicial pasada a Stream.iterate()
+    //     (12427, Seq(892))
+    //     (12, Seq(892, 427))
+    //     (0, Seq(892, 427, 12))
+    // Solo nos interesa la tupla final, cuando el remanente se hace cero
+    Stream.iterate((valor, Seq[Int]())) { case (remanente, grupos) =>
+      val siguienteElemento = remanente % 1000
+      val siguienteRemanente = remanente / 1000
+      (siguienteRemanente, grupos :+ siguienteElemento)
     }
+      // Se detiene tan pronto el primer elemento de la tupla (el remanente) se hace cero
+      // Resultado: Some((0, Seq(892, 427, 12)))
+      .find { case(remanente, grupos) => remanente == 0 } // find(_._1 == 0)
+      // Extrae solo la colección de grupos de hasta 3 cifras (ignorando el remanente cero)
+      // Resultado: Some(Seq(892, 427, 12))
+      .map { case(remanente, grupos) => grupos } // map(_._2)
+      // Remueve envoltura Some(...) retornada por find(). Operación segura porque remanente siempre se hace cero
+      // Resultado: Seq(892, 427, 12)
+      .get
+      // Empareja cada grupo de 3 dígitos con su función sufijo correspondiente:
+      // Resultado: Seq((892, textoUnidades), (427, textoMiles), (12, textoMillones))
+      .zip(sufijosMedida)
+      // Elimina de consideración todo grupo de 3 dígitos cuyo valor sea cero
+      .filter { case (valorGrupo, sufijo) => valorGrupo > 0 } // filter(_._1 > 0)
+      // Reemplaza cada grupo de 3 dígitos con su nombre en centenas y su sufijo:
+      // Resultado: Seq("ochocientos noventa y dos", "cuatrocientos veintisiete mil", "doce millones")
+      .map { case (valorNumerico, sufijo) =>
+        s"${montoCentenas(valorNumerico)} ${sufijo(valorNumerico)}"
+      }
+      // Reversa grupos de monto escrito para presentar en el orden esperado
+      // Resultado: Seq("doce millones", "cuatrocientos veintisiete mil", "ochocientos noventa y dos")
+      .reverse
+      // Convierte colección de grupos a string delimitado con ' '
+      // Resultado: "doce millones cuatrocientos veintisiete mil ochocientos noventa y dos"
+      .mkString(" ")
   }
 
   // "Verdadero" monto escrito que opera sobre grupo de hasta 3 dígitos
